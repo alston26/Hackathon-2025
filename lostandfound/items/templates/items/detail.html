@@ -1,0 +1,13 @@
+{% extends 'items/base.html' %}
+
+{% block title %}Item Details{% endblock %}
+
+{% block content %}
+<h2>{{ item.title }}</h2>
+<p><strong>Status:</strong> {{ item.status }}</p>
+<p><strong>Category:</strong> {{ item.category }}</p>
+<p><strong>Description:</strong> {{ item.description }}</p>
+<p><strong>Lost Location:</strong> {{ item.lost_location.name }}</p>
+<p><strong>Found Location:</strong> {{ item.found_location.name }}</p>
+<img src="{{ item.image.url }}" alt="{{ item.title }}">
+{% endblock %}

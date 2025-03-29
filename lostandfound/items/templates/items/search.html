@@ -1,0 +1,94 @@
+<!-- templates/search.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-2xl font-bold mb-4">Search Lost & Found Items</h1>
+    
+    <form id="search-form" class="mb-6">
+        <div class="flex">
+            <input type="text" id="search-query" placeholder="Search for items..." 
+                   class="flex-grow p-2 border rounded-l">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-r">
+                Search
+            </button>
+        </div>
+        
+        <div class="mt-4 flex flex-wrap gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Location</label>
+                <select id="location-filter" class="p-2 border rounded">
+                    <option value="">All Locations</option>
+                    {% for location in locations %}
+                    <option value="{{ location.id }}">{{ location.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-1">Time</label>
+                <select id="time-filter" class="p-2 border rounded">
+                    <option value="">Any Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="rag-toggle" class="mr-2">
+                <label for="rag-toggle" class="text-sm">Use AI-Powered Search</label>
+            </div>
+        </div>
+    </form>
+    
+    <div id="search-results" class="space-y-4">
+        <!-- Results will be loaded here via JavaScript -->
+    </div>
+</div>
+
+<script>
+document.getElementById('search-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const query = document.getElementById('search-query').value;
+    const location = document.getElementById('location-filter').value;
+    const time = document.getElementById('time-filter').value;
+    const useRAG = document.getElementById('rag-toggle').checked;
+    
+    try {
+        const response = await axios.get('/api/search/', {
+            params: {
+                q: query,
+                location: location,
+                time: time,
+                rag: useRAG
+            }
+        });
+        
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '';
+        
+        if (response.data.length === 0) {
+            resultsContainer.innerHTML = '<p class="text-gray-500">No items found.</p>';
+            return;
+        }
+        
+        response.data.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'bg-gray-50 p-4 rounded-lg';
+            itemElement.innerHTML = `
+                <h3 class="font-bold">${item.title}</h3>
+                <p class="text-sm text-gray-600">${item.category} • Lost at ${item.lost_location.name}</p>
+                <p class="mt-2">${item.description}</p>
+                <a href="/item/${item.id}" class="text-blue-600 text-sm mt-2 inline-block">View Details</a>
+            `;
+            resultsContainer.appendChild(itemElement);
+        });
+    } catch (error) {
+        console.error('Search error:', error);
+        alert('Error performing search. Please try again.');
+    }
+});
+</script>
+{% endblock %}
